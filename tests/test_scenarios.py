@@ -190,3 +190,14 @@ def test_unique_constraints(db):
     with pytest.raises(Conflict):
         db.write(lambda tx: tx.run("INSERT INTO tf_members (team_id, slot_no, student_id) VALUES (2, 1, %s)",
                                    (ids[0],)))
+
+
+def test_state_cache_refreshes_after_write(db):
+    """여러 화면이 같은 상태를 함께 쓰되, 쓰기가 있으면 바로 새 상태를 읽는지."""
+    service.start(db, (SAMPLES / "easy.csv").read_bytes(), 3)
+    first = service.load_state(db)
+    assert service.load_state(db) is first  # 쓰기가 없으면 캐시를 씀
+    sid = next(iter(first.students))
+    assert service.apply(db, sid, 1).kind == "승인"
+    after = service.load_state(db)
+    assert after is not first and after.team_of[sid] == 1

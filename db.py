@@ -7,6 +7,7 @@
 
 import sqlite3
 import threading
+import time
 from pathlib import Path
 from typing import Any, Callable
 
@@ -73,6 +74,10 @@ class Database:
         self._sqlite_path = sqlite_path
         self._lock = threading.Lock()
         self._conn = None
+        # 쓰기(트랜잭션)가 끝날 때마다 1씩 늘어, 캐시한 읽기 결과가 낡았는지 알려 줍니다.
+        self.version = 0
+        self._cache: dict[str, tuple[int, float, Any]] = {}
+        self._cache_lock = threading.Lock()
         self.write(lambda tx: [tx.run(sql) for sql in schema_statements(self.kind)])
 
     def _connect(self):
@@ -132,6 +137,7 @@ class Database:
                             pass
                         raise
                     self._conn.execute("COMMIT")
+                    self.version += 1
                     return result
                 except Exception as e:
                     if self._is_conflict(e):
@@ -151,4 +157,19 @@ class Database:
     def write(self, fn: Callable[[Tx], Any]) -> Any:
         """fn 전체를 한 트랜잭션으로 실행합니다. 예외가 나면 모두 되돌립니다."""
         return self._with_conn(fn, transaction=True)
+
+    def cached_read(self, name: str, fn: Callable[[Tx], Any], max_age: float) -> Any:
+        """여러 사용자의 화면이 5초마다 같은 내용을 읽으므로 결과를 함께 씁니다.
+
+        이 앱에서 쓰기가 한 번이라도 있었거나 max_age초가 지났으면 DB에서 다시 읽습니다.
+        캐시를 새로 채우는 동안 다른 요청은 기다렸다가 새 결과를 씁니다.
+        """
+        with self._cache_lock:
+            hit = self._cache.get(name)
+            if hit and hit[0] == self.version and time.monotonic() - hit[1] < max_age:
+                return hit[2]
+            # 읽기와 version 확인을 같은 lock 안에서 해서, 읽는 도중의 쓰기를 놓치지 않습니다.
+            version, value = self.read(lambda tx: (self.version, fn(tx)))
+            self._cache[name] = (version, time.monotonic(), value)
+            return value
 

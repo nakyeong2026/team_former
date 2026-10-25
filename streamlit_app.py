@@ -23,15 +23,19 @@ st.set_page_config(page_title="팀 편성", page_icon="👥", layout="wide")
 
 # ---------- 공용 ----------
 
+# db.py를 고치면 이 숫자를 올립니다. 배포 서버에 캐시된 예전 Database 객체를 버리고 새로 만들게 합니다.
+DB_CODE_VERSION = 2
+
+
 @st.cache_resource(show_spinner=False)
-def get_db(url: str | None) -> Database:
+def get_db(url: str | None, code_version: int) -> Database:
     """연결은 연결 문자열마다 한 번만 만들고 모든 사용자가 다시 씁니다."""
     return Database(url)
 
 
 @st.cache_resource(show_spinner=False)
-def _admin_ready(url: str | None, password: str) -> bool:
-    service.ensure_admin(get_db(url), password)
+def _admin_ready(url: str | None, password: str, code_version: int) -> bool:
+    service.ensure_admin(get_db(url, code_version), password)
     return True
 
 
@@ -39,8 +43,8 @@ def database() -> Database:
     url = get_secret("DATABASE_URL")
     password = get_secret("ADMIN_PASSWORD")
     if password:
-        _admin_ready(url, password)
-    return get_db(url)
+        _admin_ready(url, password, DB_CODE_VERSION)
+    return get_db(url, DB_CODE_VERSION)
 
 
 def show_result(text: str | None) -> None:

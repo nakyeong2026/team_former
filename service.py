@@ -106,8 +106,13 @@ def _load(tx: Tx) -> State:
     return state
 
 
+# 화면 갱신용 읽기를 모든 사용자가 함께 쓰는 시간(초). 이 앱에서 쓰기가 있으면 바로 새로 읽습니다.
+STATE_MAX_AGE = 3
+
+
 def load_state(db: Database) -> State:
-    return db.read(_load)
+    """화면에 그릴 상태. 돌려준 State는 여러 사용자가 함께 쓰므로 고치지 않습니다."""
+    return db.cached_read("state", _load, STATE_MAX_AGE)
 
 
 # ---------- 계정 ----------
