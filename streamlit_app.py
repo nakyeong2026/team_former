@@ -216,6 +216,11 @@ def admin_page() -> None:
         c1, c2 = st.columns([5, 1])
         c1.markdown("로그인: **관리자** (admin)")
         c2.button("로그아웃", key="logout", on_click=logout)
+    # 연결 주소는 보여 주지 않고 종류만 알립니다.
+    if database().kind == "postgres":
+        st.caption("저장소: Supabase(Postgres)")
+    else:
+        st.warning("저장소: 앱 서버 안의 임시 SQLite 파일. DATABASE_URL이 없어서 앱이 다시 시작되면 내용이 사라짐")
     with st.container(key="result"):
         result_slot = st.empty()
         with result_slot:
