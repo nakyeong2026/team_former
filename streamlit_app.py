@@ -188,8 +188,9 @@ def student_page(user: dict) -> None:
 @st.fragment(run_every=REFRESH_SECONDS)
 def student_live(student_id: int) -> None:
     state = service.load_state(database())
-    with st.container(key="result"):
-        show_result(st.session_state.get("result"))
+    # 결과 안내는 맨 위에 자리만 잡아 두고 맨 마지막에 채웁니다.
+    # 안내가 바뀌었을 때는 아래 팀 목록도 이미 새 상태로 그려져 있게 하려는 것입니다.
+    result_box = st.container(key="result")
     me = state.students.get(student_id)
     if me is None:
         st.warning("명단이 새로 올라와 내 계정이 없어짐. 로그아웃한 뒤 다시 로그인해 주세요.")
@@ -210,6 +211,8 @@ def student_live(student_id: int) -> None:
         with st.expander("내 지원 기록"):
             for app in reversed(mine):
                 st.markdown(f"- 팀{app['team_id']}: **{app['status']}** {('— ' + app['reason']) if app['reason'] else ''}")
+    with result_box:
+        show_result(st.session_state.get("result"))
 
 
 # ---------- 관리자 화면 ----------
@@ -225,10 +228,9 @@ def admin_page() -> None:
         st.caption("저장소: Supabase(Postgres)")
     else:
         st.warning("저장소: 앱 서버 안의 임시 SQLite 파일. DATABASE_URL이 없어서 앱이 다시 시작되면 내용이 사라짐")
+    # 결과 안내는 자리만 잡아 두고 화면 맨 마지막에 채웁니다(팀이 없는 학생 표시가 먼저 새로 그려지게).
     with st.container(key="result"):
         result_slot = st.empty()
-        with result_slot:
-            show_result(st.session_state.get("result"))
 
     st.subheader("명단 올리기")
     st.caption("명단 CSV(student_no,name,main_role,sub_roles)와 팀 수를 넣으면 지원·투표·팀원·마감 표시를 모두 지우고 "
@@ -261,6 +263,8 @@ def admin_page() -> None:
                 hide_index=True)
         else:
             st.caption("아직 기록이 없음")
+    with result_slot:
+        show_result(st.session_state.get("result"))
 
 
 @st.fragment(run_every=REFRESH_SECONDS)
