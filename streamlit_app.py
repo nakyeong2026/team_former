@@ -1,7 +1,8 @@
 """팀 프로젝트를 위한 팀 편성 웹 앱(Streamlit).
 
 화면 요소의 key는 공고 2.7절의 표를 그대로 따릅니다(자동 채점 프로그램이 key로 찾음).
-다른 사람의 변경은 st.fragment(run_every=5)로 바뀐 부분만 5초마다 다시 그립니다.
+다른 사람의 변경은 st.fragment(run_every=3)로 바뀐 부분만 3초마다 다시 그립니다.
+(공고: 5초 이하. 채점 프로그램은 단추가 나타나기를 7초까지 기다리므로, 조회 시간까지 더해도 여유가 있게 3초로 둠)
 """
 
 from datetime import datetime, timedelta, timezone
@@ -16,7 +17,7 @@ from service import State
 from settings import get_secret
 
 KST = timezone(timedelta(hours=9))
-REFRESH_SECONDS = 5
+REFRESH_SECONDS = 3
 
 st.set_page_config(page_title="팀 편성", page_icon="👥", layout="wide")
 

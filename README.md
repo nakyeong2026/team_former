@@ -17,7 +17,7 @@ https://teamformer-wwx6vvodyxhojsw9j4kydw.streamlit.app/
 
 | 기능 | 고른 해결 | 구현 |
 |---|---|---|
-| 다른 사람의 변경 보기 | 어려운 해결 | `st.fragment(run_every=5)`로 팀 목록·투표·팀이 없는 학생을 5초마다 다시 그림 |
+| 다른 사람의 변경 보기 | 어려운 해결 | `st.fragment(run_every=3)`로 팀 목록·투표·팀이 없는 학생을 3초마다 다시 그림 |
 | 필수 포함 역할을 지킬 수 없는 팀 | 어려운 해결 | 지원할 때 남는 자리 수와 아직 못 채운 필수 역할 수(최대 매칭)를 비교해 막음(`rules.join_problem`) |
 | 같은 팀에 대기 중인 지원이 여럿 | 어려운 해결 | 모든 팀원이 찬성한 순간 정원·주 역할 중복·필수 역할 자리를 다시 검사(`service.vote`) |
 | 마지막 자리에 두 명이 동시에 들어감 | 어려운 해결 | `tf_members`의 `(team_id, slot_no)` 기본 키와 `student_id` 유일성 제약([schema.sql](schema.sql)) |
@@ -42,6 +42,7 @@ https://teamformer-wwx6vvodyxhojsw9j4kydw.streamlit.app/
 
 - **쓸 수 없는 모델을 3차 모델로 고름.** 클로드는 OpenRouter의 `/models/{id}/endpoints`에서 `status 0`, 가동률 100%인 것만 보고 `thinkingmachines/inkling:free`를 3차 모델로 정함. 실제로 한 번 불러 보니 HTTP 403 "only available on agentic harnesses"로 거절되어, 이 모델은 일반 API 호출로는 쓸 수 없음을 알게 됨. 3차 모델을 실제 호출 결과로 다시 골라 `poolside/laguna-s-2.1:free`로 바꿈(`ai_assign.py`의 `MODELS` 주석. 바뀐 모델 목록은 첫 커밋 `4577b89`에 들어 있음).
 - **추론 모델의 토큰 한도를 너무 작게 잡음.** 클로드가 처음 정한 `max_tokens` 8000으로는 추론 모델 여러 개가 빈 응답을 냄(5항 세 번째 사례).
+- **README에 학번 칸을 만듦.** 클로드가 README 맨 위에 "작성자: (이름) · 학번: (학번)" 칸을 만들어 학번을 적게 함. 공고 6.3절 9번을 다시 읽어 보니 감점 예외는 "README.md에 작성자로 자기 이름을 적는 것"뿐이라, 실제 학번을 적으면 -3점이 될 수 있었음. 학번을 적기 전에 알아채 학번 칸을 지움(커밋 `587816b`).
 
 ## 7. 발견한 문제점과 개선 필요 사항
 

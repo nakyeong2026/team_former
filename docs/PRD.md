@@ -48,7 +48,7 @@
 
 - 로그인, 학생 화면, 관리자 화면. 화면 요소의 Streamlit `key`는 공고 2.7절 표를 그대로 쓴다(`login_student_no`, `login_password`, `login_submit`, `whoami`, `result`, `team_N`, `apply_N`, `vote_yes_{학번}`, `vote_no_{학번}`, `admin_roster_file`, `admin_team_count`, `admin_start`, `admin_close`, `unassigned`, `admin_assign`, `assign_status`, `admin_confirm`).
 - `result`의 안내는 "승인", "대기", "거절", "막힘" 가운데 하나로 시작한다.
-- 다른 사람의 변경은 `st.fragment(run_every=5)`로 바뀐 부분만 5초마다 다시 그린다.
+- 다른 사람의 변경은 `st.fragment(run_every=3)`로 바뀐 부분만 3초마다 다시 그린다(공고 조건은 5초 이하, 채점 프로그램은 단추를 7초까지 기다림).
 - 지원 단추는 이미 팀이 있거나, 결과를 기다리는 지원이 있거나, 마감되었으면 비활성화한다. 이미 투표한 지원은 단추 대신 "내 투표: 찬성"을 보여 준다.
 - AI 배정 중에는 `assign_status`에 몇 차 모델의 응답을 몇 초째 기다리는지 보여 준다.
 
